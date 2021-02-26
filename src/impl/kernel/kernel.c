@@ -35,10 +35,7 @@ void kernel_main(uint64_t grub_arguments) {
         print_str("Flags: "); print_word(mbd->flags); print_line("");
         print_str("Low Mem: "); print_double_word(mbd->mem_lower); print_line("");
         print_str("High Mem: "); print_double_word(mbd->mem_upper); print_line("");
-        multiboot_memory_map_t* mmap = (multiboot_memory_map_t*) mbd->mmap_addr;
-        // for(int i = 0; i < mbd->mmap_length; i += mmap->size + sizeof(mmap->size)) {
-        //     print_str("Base: "); print_quad_word((mmap+i)->addr); print_str("Length: "); print_quad_word((mmap+i)->len); print_str("Type: "); print_double_word((mmap+i)->type); print_line("");
-        // }
+        print_str("MMap Size: "); print_double_word(mbd->mmap_length); print_str(" MMap Addr: "); print_double_word(mbd->mmap_addr); print_line("");
     } else {
         print_line("Multiboot MMAP Not Valid");
         print_str("Flags: "); print_word(mbd->flags); print_line("");
