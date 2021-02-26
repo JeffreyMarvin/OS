@@ -49,7 +49,6 @@ void print_clear() {
 }
 
 void print_char(char character) {
-    col++;
 
     if (character == '\n') {
         print_newline();
@@ -64,6 +63,7 @@ void print_char(char character) {
         character: (uint8_t) character,
         color: color,
     };
+    col++;
 }
 
 void print_str(char* string) {
@@ -72,6 +72,49 @@ void print_str(char* string) {
     }
 }
 
+void print_line(char* string) {
+    print_str(string);
+    print_newline();
+}
+
 void print_set_color(uint8_t foreground, uint8_t background) {
     color = foreground | background << 4;
+}
+
+void print_nybble(uint8_t nybble) { 
+    char c;
+    if(nybble < 10){
+        c = '0' + nybble;
+    } else {
+        c = 'A' + nybble - 10;
+    }
+    print_char(c);
+}
+
+void print_byte(uint8_t byte) {
+    print_str("0x");
+    for(int i = 1; i >= 0; i--) {
+        print_nybble((byte >> (4 * i)) & 0x0F);
+    }
+}
+
+void print_word(uint16_t word) {
+    print_str("0x");
+    for(int i = 3; i >= 0; i--) {
+        print_nybble((word >> (4 * i)) & 0x0F);
+    }
+}
+
+void print_double_word(uint32_t double_word) {
+    print_str("0x");
+    for(int i = 7; i >= 0; i--) {
+        print_nybble((double_word >> (4 * i)) & 0x0F);
+    }
+}
+
+void print_quad_word(uint64_t quad_word) {
+    print_str("0x");
+    for(int i = 15; i >= 0; i--) {
+        print_nybble((quad_word >> (4 * i)) & 0x0F);
+    }
 }

@@ -6,6 +6,9 @@ bits 32
 start:
 	mov esp, stack_top
 
+	push eax ; multiboot magic number
+	push ebx ; grub info incl. mmap
+
 	call check_multiboot
 	call check_cpuid
 	call check_long_mode
