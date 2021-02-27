@@ -14,13 +14,13 @@ size_t col = 0;
 size_t row = 0;
 uint8_t color = PRINT_COLOR_WHITE | PRINT_COLOR_BLACK << 4;
 
-void clear_row (size_t row) {
+void clear_row (size_t r) {
     struct Char empty = (struct Char) {
         character: ' ',
         color: color,
     };
-    for(int col = 0; col < NUM_COLS; col++) {
-        buffer[row * NUM_COLS + col] = empty;
+    for(int c = 0; c < NUM_COLS; c++) {
+        buffer[r * NUM_COLS + c] = empty;
     }
 }
 
@@ -31,14 +31,13 @@ void print_newline() {
         return;
     }
 
-    row--;
-
     for(size_t r = 0; r < NUM_ROWS - 1; r++) {
         for(size_t c = 0; c < NUM_COLS; c++) {
             buffer[r * NUM_COLS + c] = buffer[(r + 1) * NUM_COLS + c];
         }
     }
-
+    
+    row = NUM_ROWS - 1;
     clear_row(row);
 }
 
