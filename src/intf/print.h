@@ -24,11 +24,16 @@ enum {
 
 void print_clear();
 void print_char(char character);
-void print_str(char* string);
-void print_line(char* string);
+void print_str(const char* string);
+void print_line(const char* string = "");
 void print_set_color(uint8_t foreground, uint8_t background);
 
-void print_byte(uint8_t byte);
-void print_word(uint16_t word);
-void print_double_word(uint32_t double_word);
-void print_quad_word(uint64_t quad_word);
+void print_hex(uint8_t num);
+void print_hex(uint16_t num);
+void print_hex(uint32_t num);
+void print_hex(uint64_t num);
+
+void print_num(uint8_t num);
+void print_num(uint16_t num);
+void print_num(uint32_t num);
+void print_num(uint64_t num);
