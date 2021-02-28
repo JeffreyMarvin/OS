@@ -22,7 +22,8 @@ start:
 	hlt
 
 check_multiboot:
-	cmp eax, 0x36d76289
+	;cmp eax, 0x36d76289 ; multiboot 2
+	cmp eax, 0x2BADB002 ; multiboot 1
 	jne .no_multiboot
 	ret
 .no_multiboot:
