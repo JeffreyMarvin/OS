@@ -100,8 +100,9 @@ extern "C" void kernel_main(uint64_t grub_arguments) {
         } else {
             return;  //Don't support other graphical modes.  Yet.
         }
+    } else {
+        console = Text_Console(0xB8000, 80, 25, console.PRINT_COLOR_CYAN, console.PRINT_COLOR_BLACK); //If no data, hope Text_Console works with default values
     }
-    //If no framebufferr info, try with the defaults and hope it's text
 
     console.clear_screen();
     console.print_line("Welcome to our 64-bit kernel!");
