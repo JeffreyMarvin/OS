@@ -3,7 +3,7 @@
 #include <stdint.h>
 #include <stddef.h>
 
-typedef struct Char {
+struct Char {
     uint8_t character;
     uint8_t color;
 };

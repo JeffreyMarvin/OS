@@ -127,7 +127,7 @@ page_table_l3:
 page_table_l2:
 	resb 4096
 stack_bottom:
-	resb 4096
+	resb 1048576
 stack_top:
 
 section .rodata
