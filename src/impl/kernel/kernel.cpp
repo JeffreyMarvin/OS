@@ -1,9 +1,12 @@
 #include "text_console.h"
 #include "multiboot.h"
-#include "memory.h"
 #include "gdt.h"
+#include "page_frame_allocator.h"
 
 Text_Console console;
+
+extern uint64_t _kernel_start;
+extern uint64_t _kernel_end;
 
 void print_mmap(multiboot_info_t* mbd){
     if(!mbd->flags & 0x0040){
@@ -57,6 +60,8 @@ void kernel_init(uint32_t magic, multiboot_info_t* mbd) {
     gdt_descriptor.Offset = (uint64_t)&default_GDT;
     load_GDT(&gdt_descriptor);
 
+    GlobalAllocator = Page_Frame_Allocator(mbd);
+
     if(mbd->flags & MULTIBOOT_INFO_FRAMEBUFFER_INFO) {  //Did the bootloader tell us about the framebuffer?
         if(mbd->framebuffer_type == MULTIBOOT_FRAMEBUFFER_TYPE_EGA_TEXT){  //Is it the easy text type?
             console = Text_Console(mbd->framebuffer_addr, mbd->framebuffer_width, mbd->framebuffer_height, console.PRINT_COLOR_CYAN, console.PRINT_COLOR_BLACK);  //Set it up with params from the bootloader
@@ -92,7 +97,14 @@ extern "C" void kernel_main(grub_args grub_arguments) {
     }
 
     console.print_line();
-    console.print_str("Total memory: "); console.print_num(getMemorySize(mbd)); console.print_line();
+    console.print_str("_kernel_start: "); console.print_hex((uint64_t)&_kernel_start); console.print_line();
+    console.print_str("_kernel_end:   "); console.print_hex((uint64_t)&_kernel_end); console.print_line();
+
+    console.print_line();
+    console.print_str("Total memory:    "); console.print_num(GlobalAllocator.get_total_RAM() / 1024); console.print_line(" kB");
+    console.print_str("Free memory:     "); console.print_num(GlobalAllocator.get_free_RAM() / 1024); console.print_line(" kB");
+    console.print_str("Used memory:     "); console.print_num(GlobalAllocator.get_used_RAM() / 1024); console.print_line(" kB");
+    console.print_str("Reserved memory: "); console.print_num(GlobalAllocator.get_reserved_RAM() / 1024); console.print_line(" kB");
     console.print_line();
 
     while(true) {
