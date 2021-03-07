@@ -1,6 +1,5 @@
 #include "text_console.h"
 
-
 Text_Console::Text_Console(uint64_t framebuffer_addr, uint32_t framebuffer_width, uint32_t framebuffer_height, uint8_t foreground, uint8_t background) {
     buffer = (Char*) framebuffer_addr;
     width = framebuffer_width;
@@ -8,16 +7,22 @@ Text_Console::Text_Console(uint64_t framebuffer_addr, uint32_t framebuffer_width
     set_color(foreground, background);
 }
 
-void Text_Console::set_position(size_t x, size_t y) {
-    col = x;
-    row = y;
+void Text_Console::set_position(uint64_t x, uint64_t y) {
+    col = x < width? x : width - 1;
+    row = y < height? y : height - 1;
+}
+void Text_Console::set_x_position(uint64_t x){
+    set_position(x, row);
+}
+void Text_Console::set_y_position(uint64_t y){
+    set_position(col, y);
 }
 
 void Text_Console::set_color(uint8_t foreground, uint8_t background){
 color = foreground | background << 4;
 }
 
-void Text_Console::clear_row (size_t r) {
+void Text_Console::clear_row (uint64_t r) {
     struct Char empty = (struct Char) {
         character: ' ',
         color: color,
@@ -34,8 +39,8 @@ void Text_Console::print_newline() {
         return;
     }
 
-    for(size_t r = 0; r < height - 1; r++) {
-        for(size_t c = 0; c < width; c++) {
+    for(uint64_t r = 0; r < height - 1; r++) {
+        for(uint64_t c = 0; c < width; c++) {
             buffer[r * width + c] = buffer[(r + 1) * width + c];
         }
     }
@@ -45,9 +50,10 @@ void Text_Console::print_newline() {
 }
 
 void Text_Console::clear_screen() {
-    for(size_t r = 0; r < height; r++) {
+    for(uint64_t r = 0; r < height; r++) {
         clear_row(r);
     }
+    set_position(0,0);
 }
 
 void Text_Console::print_char(char character) {
@@ -164,3 +170,5 @@ void Text_Console::print_num(uint32_t num){
 void Text_Console::print_num(uint64_t num){
     print_str(integer_to_string(num));
 }
+
+extern Text_Console GlobalConsole = Text_Console();

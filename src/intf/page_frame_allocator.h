@@ -1,13 +1,12 @@
 #pragma once
 
 #include <stdint.h>
-#include <stddef.h>
 #include "multiboot.h"
 
 #define PAGE_SIZE 4096
 
 struct bitmap {
-    size_t size;
+    uint64_t size;
     uint8_t* buffer;
     bool get(uint64_t index);
     bool set(uint64_t index, bool value);
@@ -38,5 +37,3 @@ class Page_Frame_Allocator {
         uint64_t totalMemory = 0;
         uint64_t getMemorySize(multiboot_info_t* mbd);
 };
-
-extern Page_Frame_Allocator GlobalAllocator;

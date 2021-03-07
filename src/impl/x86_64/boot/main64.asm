@@ -1,5 +1,5 @@
 global long_mode_start
-extern kernel_main
+extern kernel_start
 
 section .text
 bits 64
@@ -12,5 +12,5 @@ long_mode_start:
     mov fs, ax
     mov gs, ax
     pop rdi
-    call kernel_main
+    call kernel_start
     hlt

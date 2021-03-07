@@ -33,7 +33,7 @@ Page_Frame_Allocator::Page_Frame_Allocator(multiboot_info_t* mbd){
 
     pageBitmap.size = (totalMemory / PAGE_SIZE / 8);
     pageBitmap.buffer = (uint8_t*)(((uint64_t)&_kernel_end / PAGE_SIZE + 1) * PAGE_SIZE);
-    for(size_t i = 0; i < pageBitmap.size; i++){
+    for(uint64_t i = 0; i < pageBitmap.size; i++){
         *(pageBitmap.buffer + i) = 0x00;
     }
 
@@ -140,3 +140,5 @@ uint64_t Page_Frame_Allocator::getMemorySize(multiboot_info_t* mbd) {
     }
     return totalMemory;
 }
+
+extern Page_Frame_Allocator GlobalAllocator = Page_Frame_Allocator(nullptr);

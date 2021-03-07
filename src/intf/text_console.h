@@ -1,7 +1,6 @@
 #pragma once
 
 #include <stdint.h>
-#include <stddef.h>
 
 struct Char {
     uint8_t character;
@@ -31,7 +30,9 @@ class Text_Console {
 
         Text_Console(uint64_t framebuffer_addr = 0xb8000, uint32_t framebuffer_width = 80, uint32_t framebuffer_height = 25, uint8_t foreground = PRINT_COLOR_WHITE, uint8_t background = PRINT_COLOR_BLACK);
 
-        void set_position(size_t x, size_t y);
+        void set_position(uint64_t x, uint64_t y);
+        void set_x_position(uint64_t x);
+        void set_y_position(uint64_t y);
         void set_color(uint8_t foreground, uint8_t background);
 
         void clear_screen();
@@ -53,14 +54,14 @@ class Text_Console {
 
     Char* buffer;
 
-    size_t width;
-    size_t height;
+    uint64_t width;
+    uint64_t height;
     uint8_t color;
 
-    size_t col;
-    size_t row;
+    uint64_t col;
+    uint64_t row;
 
         void print_char(char character);
         void print_newline();
-        void clear_row (size_t r);
+        void clear_row (uint64_t r);
 };
