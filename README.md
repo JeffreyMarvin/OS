@@ -1,5 +1,3 @@
 # OS
 
-This repository is based on [David Callanan's repository](https://github.com/davidcallanan/os-series) for his [Youtube series](https://www.youtube.com/playlist?list=PLZQftyCk7_SeZRitx5MjBKzTtvk0pHMtp) on developing a 64-bit OS.
-
-Additionally, I plan to independentally expand on it by using [OSDev Wiki's Meaty Skeleton](https://wiki.osdev.org/Meaty_Skeleton).
+This repository is based on a combination of [David Callanan's repository](https://github.com/davidcallanan/os-series) for his [Youtube series](https://www.youtube.com/playlist?list=PLZQftyCk7_SeZRitx5MjBKzTtvk0pHMtp)  and [Poncho's repository](https://github.com/Absurdponcho/PonchoOS) for his [Youtube series](https://www.youtube.com/playlist?list=PLxN4E629pPnJxCQCLy7E0SQY_zuumOVyZ).
