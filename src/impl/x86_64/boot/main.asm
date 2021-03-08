@@ -1,4 +1,6 @@
 global start
+global page_table_l4
+
 extern long_mode_start
 
 section .text
@@ -127,7 +129,7 @@ page_table_l3:
 page_table_l2:
 	resb 4096
 stack_bottom:
-	resb 1048576
+	resb 1048576 ; 1M
 stack_top:
 
 section .rodata

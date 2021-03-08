@@ -3,21 +3,26 @@
 #include "text_console.h"
 #include "gdt.h"
 #include "interrupt.h"
+#include "mem_util.h"
+#include "page_table_manager.h"
 
 extern uint64_t _kernel_start;
 extern uint64_t _kernel_end;
 extern Page_Frame_Allocator GlobalAllocator;
 extern Text_Console GlobalConsole;
+extern Page_Table_Manager GlobalPageManager;
 
 void kernel_init(multiboot_info_t* mbd) {
+
+    init_global_console(mbd);
 
     init_gdt();
 
     init_page_frame_allocator(mbd);
 
-    init_global_console(mbd);
-
     init_idt();
+
+    init_page_table_manager();
 
     return;
 }
@@ -31,6 +36,20 @@ void init_gdt(){
 
 void init_page_frame_allocator(multiboot_info_t* mbd){
     GlobalAllocator = Page_Frame_Allocator(mbd);
+}
+
+void init_page_table_manager() {
+    Page_Table* PML4 = (Page_Table*)GlobalAllocator.request_page();
+
+    memset(PML4, 0, 0x1000);
+
+    GlobalPageManager = Page_Table_Manager(PML4);
+
+    for (uint64_t t = 0; t < GlobalAllocator.get_total_RAM(); t+= PAGE_SIZE){
+        GlobalPageManager.map_memory((void*)t, (void*)t);
+    }
+
+    asm ("mov %0, %%cr3" : : "r" (PML4));
 }
 
 void init_global_console(multiboot_info_t* mbd){

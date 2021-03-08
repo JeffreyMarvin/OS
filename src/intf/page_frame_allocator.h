@@ -2,8 +2,7 @@
 
 #include <stdint.h>
 #include "multiboot.h"
-
-#define PAGE_SIZE 4096
+#include "page_table.h"
 
 struct bitmap {
     uint64_t size;

@@ -1,5 +1,6 @@
 #include "page_frame_allocator.h"
 #include <stddef.h>
+#include "mem_util.h"
 
 extern uint64_t _kernel_start;
 extern uint64_t _kernel_end;
@@ -34,9 +35,7 @@ Page_Frame_Allocator::Page_Frame_Allocator(multiboot_info_t* mbd){
 
     pageBitmap.size = (totalMemory / PAGE_SIZE / 8);
     pageBitmap.buffer = (uint8_t*)(((uint64_t)&_kernel_end / PAGE_SIZE + 1) * PAGE_SIZE);
-    for(uint64_t i = 0; i < pageBitmap.size; i++){
-        *(pageBitmap.buffer + i) = 0x00;
-    }
+    memset(pageBitmap.buffer, 0, pageBitmap.size);
 
     uint64_t mmap_addr = mbd->mmap_addr, mmap_length = mbd->mmap_length;
     uint64_t i = 0;
