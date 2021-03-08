@@ -1,4 +1,5 @@
 #include "page_frame_allocator.h"
+#include <stddef.h>
 
 extern uint64_t _kernel_start;
 extern uint64_t _kernel_end;
@@ -62,6 +63,19 @@ Page_Frame_Allocator::Page_Frame_Allocator(multiboot_info_t* mbd){
     lock_pages((void*)(uint64_t)&_kernel_start, ((uint64_t)&_kernel_end - (uint64_t)&_kernel_start) / PAGE_SIZE + 1);
     lock_pages((void*)pageBitmap.buffer, pageBitmap.size / PAGE_SIZE + 1);
 }
+uint64_t page_frame_index = 0x100000 / PAGE_SIZE;  //Start search for free page at 1M, leaving memory under 1M due to legacy issues
+
+void* Page_Frame_Allocator::request_page(){
+
+    for (; page_frame_index < pageBitmap.size * 8; page_frame_index++){
+        if (!pageBitmap.get(page_frame_index)) {
+            lock_page((void*)(page_frame_index * 4096));
+            return (void*)(page_frame_index * 4096);
+        }
+    }
+
+    return NULL; // TODO: Swap out pages to file system
+}
 
 void Page_Frame_Allocator::free_page(void* address){
     uint64_t index = (uint64_t)address / PAGE_SIZE;
@@ -69,7 +83,11 @@ void Page_Frame_Allocator::free_page(void* address){
     pageBitmap.set(index, false);
     freeMemory += PAGE_SIZE;
     usedMemory -= PAGE_SIZE;
+    if(index < page_frame_index){
+        page_frame_index = index; //When freeing an early page, set the index to search from to the new earlier free page
+    }
 }
+
 void Page_Frame_Allocator::free_pages(void* address, uint64_t pageCount){
     for(uint64_t i = 0; i < pageCount; i++){
         free_page((void*)((uint64_t)address + (i * PAGE_SIZE)));
@@ -110,16 +128,15 @@ void Page_Frame_Allocator::unreserve_page(void* address){
     pageBitmap.set(index, false);
     freeMemory += PAGE_SIZE;
     reservedMemory -= PAGE_SIZE;
+    if(index < page_frame_index){
+        page_frame_index = index; //When freeing an early page, set the index to search from to the new earlier free page
+    }
 }
 
 void Page_Frame_Allocator::unreserve_pages(void* address, uint64_t pageCount){
     for(uint64_t i = 0; i < pageCount; i++){
         unreserve_page((void*)((uint64_t)address + (i * PAGE_SIZE)));
     }
-}
-
-void* Page_Frame_Allocator::request_page(){
-    return (void*)0;
 }
 
 uint64_t Page_Frame_Allocator::get_free_RAM() {return freeMemory;}

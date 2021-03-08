@@ -2,6 +2,7 @@
 #include "page_frame_allocator.h"
 #include "text_console.h"
 #include "gdt.h"
+#include "interrupt.h"
 
 extern uint64_t _kernel_start;
 extern uint64_t _kernel_end;
@@ -31,6 +32,7 @@ void init_gdt(){
 void init_page_frame_allocator(multiboot_info_t* mbd){
     GlobalAllocator = Page_Frame_Allocator(mbd);
 }
+
 void init_global_console(multiboot_info_t* mbd){
     if(mbd->flags & MULTIBOOT_INFO_FRAMEBUFFER_INFO) {  //Did the bootloader tell us about the framebuffer?
         if(mbd->framebuffer_type == MULTIBOOT_FRAMEBUFFER_TYPE_EGA_TEXT){  //Is it the easy text type?
@@ -43,14 +45,12 @@ void init_global_console(multiboot_info_t* mbd){
     }
 }
 
-void init_idt(){
-    ;
-}
+
 
 void kernel_panic(const char* message){
     GlobalConsole.set_color(Text_Console::PRINT_COLOR_BLACK, Text_Console::PRINT_COLOR_CYAN);
     GlobalConsole.clear_screen();
-    GlobalConsole.set_position(10, 5);
+    GlobalConsole.set_position(20, 10);
     GlobalConsole.print_line("KERNEL PANIC");
     GlobalConsole.print_line(message);
     while(true);//hang
