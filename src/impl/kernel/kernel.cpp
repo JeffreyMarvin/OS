@@ -2,6 +2,7 @@
 #include "kernel_func.h"
 #include "text_console.h"
 #include "page_frame_allocator.h"
+#include "rdsp.h"
 
 extern Page_Frame_Allocator GlobalAllocator;
 extern Text_Console GlobalConsole;
@@ -34,6 +35,13 @@ void kernel_main(multiboot_info_t* mbd) {
     GlobalConsole.print_str("Used memory:     "); GlobalConsole.print_num(GlobalAllocator.get_used_RAM() / 1024); GlobalConsole.print_line(" kB");
     GlobalConsole.print_str("Reserved memory: "); GlobalConsole.print_num(GlobalAllocator.get_reserved_RAM() / 1024); GlobalConsole.print_line(" kB");
     GlobalConsole.print_line();
+    
+    RSDP_Descriptor* rsdp = find_rspd(mbd);
+
+    GlobalConsole.print_str("RSPD: "); GlobalConsole.print_hex((uint64_t)&rsdp); GlobalConsole.print_line();
+    GlobalConsole.print_str("Checksum:"); GlobalConsole.print_hex(rsdp->Checksum); GlobalConsole.print_line();
+    GlobalConsole.print_str("Rev:"); GlobalConsole.print_hex(rsdp->Revision); GlobalConsole.print_line();
+    GlobalConsole.print_str("RSDT Addr:"); GlobalConsole.print_hex(rsdp->RsdtAddress); GlobalConsole.print_line();
 
     while(true) {
         //Kernel Main Loop
