@@ -15,6 +15,7 @@ struct interrupt_frame;
 __attribute__((interrupt)) void page_fault_handler(interrupt_frame* frame);
 __attribute__((interrupt)) void double_fault_handler(interrupt_frame* frame);
 __attribute__((interrupt)) void gp_fault_handler(interrupt_frame* frame);
+__attribute__((interrupt)) void invalid_op_handler(interrupt_frame* frame);
 __attribute__((interrupt)) void keyboard_int_handler(interrupt_frame* frame);
 __attribute__((interrupt)) void pit_int_handler(interrupt_frame* frame);
 

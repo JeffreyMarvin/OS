@@ -30,6 +30,7 @@ void init_idt(){
     SetIDTGate((void*)page_fault_handler, 0xE, IDT_TA_InterruptGate, 0x08);
     SetIDTGate((void*)double_fault_handler, 0x8, IDT_TA_InterruptGate, 0x08);
     SetIDTGate((void*)gp_fault_handler, 0xD, IDT_TA_InterruptGate, 0x08);
+    SetIDTGate((void*)invalid_op_handler, 0x6, IDT_TA_InterruptGate, 0x08);
     SetIDTGate((void*)keyboard_int_handler, PIC_MASTER_OFFSET + 1, IDT_TA_InterruptGate, 0x08);
     SetIDTGate((void*)pit_int_handler, PIC_MASTER_OFFSET + 0, IDT_TA_InterruptGate, 0x08);
      
@@ -60,6 +61,9 @@ __attribute__((interrupt)) void gp_fault_handler(interrupt_frame* frame){
     kernel_panic("General Protection Fault Detected");
 }
 
+__attribute__((interrupt)) void invalid_op_handler(interrupt_frame* frame){
+    kernel_panic("Invalid Opcode Detected");
+}
 
 __attribute__((interrupt)) void keyboard_int_handler(interrupt_frame* frame){
     //TODO: Handle Keyboard Input
