@@ -2,7 +2,8 @@
 #include "kernel_func.h"
 #include "text_console.h"
 #include "page_frame_allocator.h"
-#include "rdsp.h"
+#include "rsdp.h"
+#include "pit.h"
 
 extern Page_Frame_Allocator GlobalAllocator;
 extern Text_Console GlobalConsole;
@@ -43,7 +44,9 @@ void kernel_main(multiboot_info_t* mbd) {
     GlobalConsole.print_str("Rev:"); GlobalConsole.print_hex(rsdp->Revision); GlobalConsole.print_line();
     GlobalConsole.print_str("RSDT Addr:"); GlobalConsole.print_hex(rsdp->RsdtAddress); GlobalConsole.print_line();
 
+    GlobalConsole.print_line("Starting Main Loop");
     while(true) {
-        //Kernel Main Loop
+        draw_time(80,25);
+        PIT::sleep(100);
     }
 }

@@ -3,8 +3,16 @@
 #include "io.h"
 #include "kernel_func.h"
 #include "page_frame_allocator.h"
+#include "pit.h"
+#include "text_console.h"
 
 extern Page_Frame_Allocator GlobalAllocator;
+extern Text_Console GlobalConsole;
+
+const uint8_t PIC_MASTER_PIT_MASK = 0b11111101;
+const uint8_t PIC_MASTER_KEYBOARD_MASK = 0b11111110;
+const uint8_t PIC_MASTER_OFFSET = 0x20;
+const uint8_t PIC_SLAVE_OFFSET = PIC_MASTER_OFFSET + 8;
 
 IDTR idtr;
 void SetIDTGate(void* handler, uint8_t entry_offset, uint8_t type_attr, uint8_t selector){
@@ -22,14 +30,18 @@ void init_idt(){
     SetIDTGate((void*)page_fault_handler, 0xE, IDT_TA_InterruptGate, 0x08);
     SetIDTGate((void*)double_fault_handler, 0x8, IDT_TA_InterruptGate, 0x08);
     SetIDTGate((void*)gp_fault_handler, 0xD, IDT_TA_InterruptGate, 0x08);
-    SetIDTGate((void*)keyboard_int_handler, 0x21, IDT_TA_InterruptGate, 0x08);
+    SetIDTGate((void*)keyboard_int_handler, PIC_MASTER_OFFSET + 1, IDT_TA_InterruptGate, 0x08);
+    SetIDTGate((void*)pit_int_handler, PIC_MASTER_OFFSET + 0, IDT_TA_InterruptGate, 0x08);
      
     asm ("lidt %0" : : "m" (idtr));
 
     remap_pic();
 
-    outb(PIC1_DATA, 0b11111101);
-    outb(PIC2_DATA, 0b11111111);
+    uint8_t PIC_MASTER_MASK = 0xFF & (PIC_MASTER_PIT_MASK & PIC_MASTER_KEYBOARD_MASK);
+    uint8_t PIC_SLAVE_MASK = 0xFF;
+
+    outb(PIC1_DATA, PIC_MASTER_MASK);
+    outb(PIC2_DATA, PIC_SLAVE_MASK);
 
     asm ("sti");
 
@@ -51,6 +63,12 @@ __attribute__((interrupt)) void gp_fault_handler(interrupt_frame* frame){
 
 __attribute__((interrupt)) void keyboard_int_handler(interrupt_frame* frame){
     //TODO: Handle Keyboard Input
+    pic_end_master();
+}
+
+__attribute__((interrupt)) void pit_int_handler(interrupt_frame* frame){
+    PIT::tick();
+    pic_end_master();
 }
 
 void pic_end_master(){
@@ -76,9 +94,9 @@ void remap_pic(){
     outb(PIC2_COMMAND, ICW1_INIT | ICW1_ICW4);
     io_wait();
 
-    outb(PIC1_DATA, 0x20);
+    outb(PIC1_DATA, PIC_MASTER_OFFSET);
     io_wait();
-    outb(PIC2_DATA, 0x28);
+    outb(PIC2_DATA, PIC_SLAVE_OFFSET);
     io_wait();
 
     outb(PIC1_DATA, 4);

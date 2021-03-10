@@ -2,7 +2,8 @@ CC = x86_64-elf-gcc
 ASM = nasm
 LD = x86_64-elf-ld
 
-CFLAGS = -ffreestanding -fshort-wchar -mno-red-zone -mgeneral-regs-only
+CFLAGS = -ffreestanding -fshort-wchar -mno-red-zone -mfpmath=387 -mno-sse2
+INT_CFLAGS = -mgeneral-regs-only
 ASMFLAGS = -f elf64
 LDFLAGS = -n -static -Bsymbolic -nostdlib
 
@@ -33,8 +34,13 @@ $(x86_64_c_object_files): build/x86_64/%.o : src/impl/x86_64/%.c
 	mkdir -p $(dir $@) && \
 	$(CC) -c -I src/intf $(CFLAGS) $(patsubst build/x86_64/%.o, src/impl/x86_64/%.c, $@) -o $@
 $(x86_64_cpp_object_files): build/x86_64/%.o : src/impl/x86_64/%.cpp
-	mkdir -p $(dir $@) && \
-	$(CC) -c -I src/intf $(CFLAGS) $(patsubst build/x86_64/%.o, src/impl/x86_64/%.cpp, $@) -o $@
+	@if [ "$(findstring interrupt,$@)" = "interrupt" ]; then \
+		mkdir -p $(dir $@) && \
+		$(CC) -c -I src/intf $(CFLAGS) $(INT_CFLAGS) $(patsubst build/x86_64/%.o, src/impl/x86_64/%.cpp, $@) -o $@ ; \
+	else \
+		mkdir -p $(dir $@) && \
+		$(CC) -c -I src/intf $(CFLAGS) $(patsubst build/x86_64/%.o, src/impl/x86_64/%.cpp, $@) -o $@ ; \
+	fi;
 
 $(x86_64_asm_object_files): build/x86_64/%.o : src/impl/x86_64/%.asm
 	mkdir -p $(dir $@) && \

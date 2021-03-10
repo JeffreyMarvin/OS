@@ -11,19 +11,12 @@
 #define ICW1_ICW4 0x01
 #define ICW4_8086 0x01
 
-struct interrupt_frame
-{
-    uint64_t error;
-    uint64_t ip;
-    uint64_t cs;
-    uint64_t flags;
-    uint64_t sp;
-    uint64_t ss;
-};
+struct interrupt_frame;
 __attribute__((interrupt)) void page_fault_handler(interrupt_frame* frame);
 __attribute__((interrupt)) void double_fault_handler(interrupt_frame* frame);
 __attribute__((interrupt)) void gp_fault_handler(interrupt_frame* frame);
 __attribute__((interrupt)) void keyboard_int_handler(interrupt_frame* frame);
+__attribute__((interrupt)) void pit_int_handler(interrupt_frame* frame);
 
 void SetIDTGate(void* handler, uint8_t entry_offset, uint8_t type_attr, uint8_t selector);
 void init_idt();

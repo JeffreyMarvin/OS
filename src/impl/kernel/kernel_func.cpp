@@ -5,6 +5,7 @@
 #include "interrupt.h"
 #include "mem_util.h"
 #include "page_table_manager.h"
+#include "pit.h"
 
 extern uint64_t _kernel_start;
 extern uint64_t _kernel_end;
@@ -21,6 +22,8 @@ void kernel_init(multiboot_info_t* mbd) {
     init_page_frame_allocator(mbd);
 
     init_idt();
+
+    PIT::set_frequency(1000); //~5ms resolution
 
     init_page_table_manager();
 
@@ -113,4 +116,25 @@ void print_mmap(multiboot_info_t* mbd){
         }
         i += entry->size + 4;
     }
+}
+
+void draw_time(uint8_t x, uint8_t y){
+    uint64_t time = PIT::TimeSinceBoot;
+    uint8_t seconds = time % 60;
+    uint8_t minutes = time / 60;
+    if(minutes > 60){
+        GlobalConsole.set_position(x-8, y-1);
+        uint8_t hours = minutes / 60;
+        minutes %= 60;
+        if(hours < 10) GlobalConsole.print_str("0");
+        GlobalConsole.print_num(hours);
+        GlobalConsole.print_str(":");
+    } else {
+        GlobalConsole.set_position(x-5, y-1);
+    }
+    if(minutes < 10) GlobalConsole.print_str("0");
+    GlobalConsole.print_num(minutes);
+    GlobalConsole.print_str(":");
+    if(seconds < 10) GlobalConsole.print_str("0");
+    GlobalConsole.print_num(seconds);
 }
