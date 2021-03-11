@@ -23,7 +23,7 @@ void kernel_init(multiboot_info_t* mbd) {
 
     init_idt();
 
-    PIT::set_frequency(1000); //~5ms resolution
+    PIT::set_frequency(1000); //~1ms resolution
 
     init_page_table_manager();
 

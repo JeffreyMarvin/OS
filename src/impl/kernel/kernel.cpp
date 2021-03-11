@@ -4,6 +4,7 @@
 #include "page_frame_allocator.h"
 #include "rsdp.h"
 #include "pit.h"
+#include "pci.h"
 
 extern Page_Frame_Allocator GlobalAllocator;
 extern Text_Console GlobalConsole;
@@ -28,7 +29,7 @@ void kernel_main(multiboot_info_t* mbd) {
     GlobalConsole.print_line("Welcome to our 64-bit kernel!");
     GlobalConsole.print_line();
 
-    print_mmap(mbd);
+    // print_mmap(mbd);
 
     GlobalConsole.print_line();
     GlobalConsole.print_str("Total memory:    "); GlobalConsole.print_num(GlobalAllocator.get_total_RAM() / 1024); GlobalConsole.print_line(" kB");
@@ -39,12 +40,27 @@ void kernel_main(multiboot_info_t* mbd) {
     
     RSDP_Descriptor* rsdp = find_rspd(mbd);
 
-    GlobalConsole.print_str("RSPD: "); GlobalConsole.print_hex((uint64_t)&rsdp); GlobalConsole.print_line();
-    GlobalConsole.print_str("Checksum:"); GlobalConsole.print_hex(rsdp->Checksum); GlobalConsole.print_line();
-    GlobalConsole.print_str("Rev:"); GlobalConsole.print_hex(rsdp->Revision); GlobalConsole.print_line();
-    GlobalConsole.print_str("RSDT Addr:"); GlobalConsole.print_hex(rsdp->RsdtAddress); GlobalConsole.print_line();
+    // GlobalConsole.print_str("RSPD: "); GlobalConsole.print_hex((uint64_t)&rsdp); GlobalConsole.print_line();
+    // GlobalConsole.print_str("Checksum:"); GlobalConsole.print_hex(rsdp->Checksum); GlobalConsole.print_line();
+    // GlobalConsole.print_str("Rev:"); GlobalConsole.print_hex(rsdp->Revision); GlobalConsole.print_line();
+    // GlobalConsole.print_str("RSDT Addr:"); GlobalConsole.print_hex(rsdp->RsdtAddress); GlobalConsole.print_line();
 
-    GlobalConsole.print_line("Starting Main Loop");
+    GlobalConsole.print_line("Enumerating PCI Bus 0");
+    
+    PCI::enumerateBus(0);
+    // for(uint8_t i = 0; i < 32; i++){
+    //     if((*PCI::pci_devices)[0][i]->VendorID != 0xFFFF){
+    //         GlobalConsole.print_str("Found device "); GlobalConsole.print_num(i);
+    //         GlobalConsole.print_str(". VendorID: "); GlobalConsole.print_hex((*PCI::pci_devices)[0][i]->VendorID);
+    //         GlobalConsole.print_str(", DeviceID: "); GlobalConsole.print_hex((*PCI::pci_devices)[0][i]->DeviceID);
+    //         GlobalConsole.print_str(", Class: "); GlobalConsole.print_hex((*PCI::pci_devices)[0][i]->Class);
+    //         GlobalConsole.print_str(", Subclass: "); GlobalConsole.print_hex((*PCI::pci_devices)[0][i]->Subclass);
+    //         GlobalConsole.print_line();
+    //     }
+    // }
+
+    GlobalConsole.print_line();
+
     while(true) {
         draw_time(80,25);
         PIT::sleep(100);
