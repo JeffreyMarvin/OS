@@ -1,5 +1,5 @@
 #include "pit.h"
-#include "io.h"
+#include "x86io.h"
 #include "text_console.h"
 
 extern Text_Console GlobalConsole;

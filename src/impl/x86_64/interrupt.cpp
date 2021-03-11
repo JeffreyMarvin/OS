@@ -1,6 +1,6 @@
 #include "interrupt.h"
 #include "idt.h"
-#include "io.h"
+#include "x86io.h"
 #include "kernel_func.h"
 #include "page_frame_allocator.h"
 #include "pit.h"
