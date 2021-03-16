@@ -87,9 +87,9 @@ namespace PCI {
         Other = 0x80
     };
 
-    uint32_t pciRead(uint8_t bus, uint8_t devics, uint8_t function, uint8_t offset);
+    uint32_t pci_read(uint8_t bus, uint8_t devics, uint8_t function, uint8_t offset);
 
-    bool checkDevice(uint8_t bus, uint8_t device, uint8_t function = 0) ;
-    void enumerateBus(uint8_t bus);
+    bool check_device(uint8_t bus, uint8_t device, uint8_t function = 0) ;
+    void enumerate_bus(uint8_t bus);
     // extern PCIDeviceHeader** pci_devices[256][32];
 }

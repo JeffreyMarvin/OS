@@ -8,7 +8,7 @@ extern Text_Console GlobalConsole;
 namespace PCI {
     // PCIDeviceHeader** pci_devices[256][32];
 
-    uint32_t pciRead(uint8_t bus, uint8_t device, uint8_t function, uint8_t offset) {
+    uint32_t pci_read(uint8_t bus, uint8_t device, uint8_t function, uint8_t offset) {
         uint32_t pci_address = 0x80000000;  //Bit 32 = Enable Bit, Bits 24-31 are reserved
         pci_address |= ((uint32_t)bus) << 16; //Bits 23-16
         pci_address |= ((uint32_t)device & 0x1f) << 11; //Bits 15-11
@@ -18,14 +18,14 @@ namespace PCI {
         return inl(PCI_DATA_PORT);
     }
 
-    void enumerateBus(uint8_t bus){
+    void enumerate_bus(uint8_t bus){
         for(uint8_t device = 0; device < 32; device++) {
-            checkDevice(bus, device);
+            check_device(bus, device);
         }
     }
 
-    bool checkDevice(uint8_t bus, uint8_t device, uint8_t function) {
-        uint32_t tmp = pciRead(bus, device, function, Device_Vendor_Offset);
+    bool check_device(uint8_t bus, uint8_t device, uint8_t function) {
+        uint32_t tmp = pci_read(bus, device, function, Device_Vendor_Offset);
         if( (tmp & 0xFFFF) != 0xFFFF){
             // (*pci_devices)[bus][device]->VendorID = (uint16_t)(tmp & 0xFFFF);
             // (*pci_devices)[bus][device]->DeviceID = (uint16_t)((tmp >> 16) & 0xFFFF);
@@ -49,14 +49,14 @@ namespace PCI {
             }
             GlobalConsole.print_str(". VendID: "); GlobalConsole.print_hex((uint16_t)(tmp & 0xFFFF));
             GlobalConsole.print_str(", DevID: "); GlobalConsole.print_hex((uint16_t)((tmp >> 16) & 0xFFFF));
-            tmp = pciRead(bus, device, function, Class_Sub_ProgIF_RevID_Offset);
+            tmp = pci_read(bus, device, function, Class_Sub_ProgIF_RevID_Offset);
             GlobalConsole.print_str(", "); GlobalConsole.print_hex(tmp);
-            tmp = pciRead(bus, device, function, BIST_HeaderType_Latency_CacheLine_Offset);
+            tmp = pci_read(bus, device, function, BIST_HeaderType_Latency_CacheLine_Offset);
             GlobalConsole.print_str(", Header: "); GlobalConsole.print_hex((uint8_t)((tmp >> 16) & 0xFF));
             GlobalConsole.print_line();
             if((uint8_t)((tmp >> 16) & 0xFF) & 0x80 && function == 0){
                 for(uint8_t i = 1; i < 8; i++){
-                    checkDevice(bus, device, i);
+                    check_device(bus, device, i);
                 }
             }
             return true;

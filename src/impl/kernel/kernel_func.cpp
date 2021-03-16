@@ -6,6 +6,7 @@
 #include "mem_util.h"
 #include "page_table_manager.h"
 #include "pit.h"
+#include "heap.h"
 
 extern uint64_t _kernel_start;
 extern uint64_t _kernel_end;
@@ -26,6 +27,8 @@ void kernel_init(multiboot_info_t* mbd) {
     PIT::set_frequency(1000); //~1ms resolution
 
     init_page_table_manager();
+    
+    initialize_heap((void*)0x0000100000000000, 0x10);
 
     return;
 }

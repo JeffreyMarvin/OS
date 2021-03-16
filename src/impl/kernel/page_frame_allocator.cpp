@@ -68,8 +68,8 @@ void* Page_Frame_Allocator::request_page(){
 
     for (; page_frame_index < pageBitmap.size * 8; page_frame_index++){
         if (!pageBitmap.get(page_frame_index)) {
-            lock_page((void*)(page_frame_index * 4096));
-            return (void*)(page_frame_index * 4096);
+            lock_page((void*)(page_frame_index * PAGE_SIZE));
+            return (void*)(page_frame_index * PAGE_SIZE);
         }
     }
 

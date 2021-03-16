@@ -47,7 +47,7 @@ void kernel_main(multiboot_info_t* mbd) {
 
     GlobalConsole.print_line("Enumerating PCI Bus 0");
     
-    PCI::enumerateBus(0);
+    PCI::enumerate_bus(0);
     // for(uint8_t i = 0; i < 32; i++){
     //     if((*PCI::pci_devices)[0][i]->VendorID != 0xFFFF){
     //         GlobalConsole.print_str("Found device "); GlobalConsole.print_num(i);
