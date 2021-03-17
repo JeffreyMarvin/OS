@@ -19,7 +19,7 @@ start:
 	call enable_paging
 
 	lgdt [gdt64.pointer]
-	jmp gdt64.code_segment:long_mode_start
+	jmp gdt64.kernel_code_segment:long_mode_start
 
 	hlt
 
@@ -134,9 +134,38 @@ stack_top:
 
 section .rodata
 gdt64:
-	dq 0 ; zero entry
-.code_segment: equ $ - gdt64
-	dq (1 << 43) | (1 << 44) | (1 << 47) | (1 << 53) ; code segment
+.kernel_null_segment: equ $ - gdt64
+	dq 0
+.kernel_code_segment: equ $ - gdt64
+	dw 0
+	dw 0
+	db 0
+	db 0x9a
+	db 0xa0
+	db 0
+.kernel_data_segment: equ $ - gdt64
+	dw 0
+	dw 0
+	db 0
+	db 0x92
+	db 0xa0
+	db 0
+.user_null_segment: equ $ - gdt64
+	dq 0
+.user_code_segment: equ $ - gdt64
+	dw 0
+	dw 0
+	db 0
+	db 0x9a
+	db 0xa0
+	db 0
+.user_data_segment: equ $ - gdt64
+	dw 0
+	dw 0
+	db 0
+	db 0x92
+	db 0xa0
+	db 0
 .pointer:
 	dw $ - gdt64 - 1 ; length
 	dq gdt64 ; address

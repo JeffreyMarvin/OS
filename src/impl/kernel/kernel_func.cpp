@@ -1,12 +1,12 @@
 #include "kernel_func.h"
 #include "page_frame_allocator.h"
 #include "text_console.h"
-#include "gdt.h"
 #include "interrupt.h"
 #include "mem_util.h"
 #include "page_table_manager.h"
 #include "pit.h"
 #include "heap.h"
+#include "pci.h"
 
 extern uint64_t _kernel_start;
 extern uint64_t _kernel_end;
@@ -18,8 +18,6 @@ void kernel_init(multiboot_info_t* mbd) {
 
     init_global_console(mbd);
 
-    init_gdt();
-
     init_page_frame_allocator(mbd);
 
     init_idt();
@@ -27,17 +25,10 @@ void kernel_init(multiboot_info_t* mbd) {
     PIT::set_frequency(1000); //~1ms resolution
 
     init_page_table_manager();
-    
+
     initialize_heap((void*)0x0000100000000000, 0x10);
 
     return;
-}
-
-void init_gdt(){
-    GDT_descriptor gdt_descriptor;
-    gdt_descriptor.Size = sizeof(GDT) - 1;
-    gdt_descriptor.Offset = (uint64_t)&default_GDT;
-    load_GDT(&gdt_descriptor);
 }
 
 void init_page_frame_allocator(multiboot_info_t* mbd){
