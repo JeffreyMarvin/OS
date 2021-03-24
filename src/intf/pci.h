@@ -14,6 +14,10 @@ namespace PCI {
     const uint8_t Class_Sub_ProgIF_RevID_Offset = 0x08;
     const uint8_t BIST_HeaderType_Latency_CacheLine_Offset = 0x0c;
 
+    const uint16_t NUM_BUSES = 256;
+    const uint8_t DEVICES_PER_BUS = 32;
+    const uint8_t FUNCTIONS_PER_DEVICE = 8;
+
     struct PCIDeviceHeader{
         uint16_t VendorID;
         uint16_t DeviceID;
@@ -87,9 +91,10 @@ namespace PCI {
         Other = 0x80
     };
 
+    void create_device_array();
+    
     uint32_t pci_read(uint8_t bus, uint8_t devics, uint8_t function, uint8_t offset);
 
     bool check_device(uint8_t bus, uint8_t device, uint8_t function = 0) ;
     void enumerate_bus(uint8_t bus);
-    // extern PCIDeviceHeader** pci_devices[256][32];
 }

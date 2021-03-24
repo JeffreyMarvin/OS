@@ -8,6 +8,7 @@
 
 extern Page_Frame_Allocator GlobalAllocator;
 extern Text_Console GlobalConsole;
+extern PCI::PCIDeviceHeader* pci_devices;
 
 extern "C" void kernel_start(grub_args grub_arguments) {
 
@@ -31,6 +32,10 @@ void kernel_main(multiboot_info_t* mbd) {
 
     // print_mmap(mbd);
 
+    GlobalConsole.print_line("Enumerating PCI Bus 0");
+    
+    PCI::enumerate_bus(0);
+
     GlobalConsole.print_line();
     GlobalConsole.print_str("Total memory:    "); GlobalConsole.print_num(GlobalAllocator.get_total_RAM() / 1024); GlobalConsole.print_line(" kB");
     GlobalConsole.print_str("Free memory:     "); GlobalConsole.print_num(GlobalAllocator.get_free_RAM() / 1024); GlobalConsole.print_line(" kB");
@@ -45,19 +50,17 @@ void kernel_main(multiboot_info_t* mbd) {
     // GlobalConsole.print_str("Rev:"); GlobalConsole.print_hex(rsdp->Revision); GlobalConsole.print_line();
     // GlobalConsole.print_str("RSDT Addr:"); GlobalConsole.print_hex(rsdp->RsdtAddress); GlobalConsole.print_line();
 
-    GlobalConsole.print_line("Enumerating PCI Bus 0");
-    
-    PCI::enumerate_bus(0);
-    // for(uint8_t i = 0; i < 32; i++){
-    //     if((*PCI::pci_devices)[0][i]->VendorID != 0xFFFF){
-    //         GlobalConsole.print_str("Found device "); GlobalConsole.print_num(i);
-    //         GlobalConsole.print_str(". VendorID: "); GlobalConsole.print_hex((*PCI::pci_devices)[0][i]->VendorID);
-    //         GlobalConsole.print_str(", DeviceID: "); GlobalConsole.print_hex((*PCI::pci_devices)[0][i]->DeviceID);
-    //         GlobalConsole.print_str(", Class: "); GlobalConsole.print_hex((*PCI::pci_devices)[0][i]->Class);
-    //         GlobalConsole.print_str(", Subclass: "); GlobalConsole.print_hex((*PCI::pci_devices)[0][i]->Subclass);
-    //         GlobalConsole.print_line();
-    //     }
-    // }
+    for(uint8_t i = 0; i < 32; i++){
+        PCI::PCIDeviceHeader device = pci_devices[i * PCI::FUNCTIONS_PER_DEVICE];
+        if(device.VendorID != 0xFFFF && device.VendorID != 0x0000){
+            GlobalConsole.print_str("Found device "); GlobalConsole.print_num(i);
+            GlobalConsole.print_str(". VendorID: "); GlobalConsole.print_hex(device.VendorID);
+            GlobalConsole.print_str(", DeviceID: "); GlobalConsole.print_hex(device.DeviceID);
+            GlobalConsole.print_str(", Class: "); GlobalConsole.print_hex(device.Class);
+            GlobalConsole.print_str(", Subclass: "); GlobalConsole.print_hex(device.Subclass);
+            GlobalConsole.print_line();
+        }
+    }
 
     GlobalConsole.print_line();
 

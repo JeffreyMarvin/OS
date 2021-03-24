@@ -1,12 +1,17 @@
 #include "pci.h"
 #include "x86io.h"
 #include "text_console.h"
+#include "heap.h"
 
 extern Text_Console GlobalConsole;
+PCI::PCIDeviceHeader* pci_devices;
 
 
 namespace PCI {
-    // PCIDeviceHeader** pci_devices[256][32];
+
+    void create_device_array(){
+        pci_devices = (PCIDeviceHeader*)malloc((uint64_t)NUM_BUSES * DEVICES_PER_BUS * FUNCTIONS_PER_DEVICE * sizeof(PCIDeviceHeader));
+    }
 
     uint32_t pci_read(uint8_t bus, uint8_t device, uint8_t function, uint8_t offset) {
         uint32_t pci_address = 0x80000000;  //Bit 32 = Enable Bit, Bits 24-31 are reserved
@@ -19,48 +24,40 @@ namespace PCI {
     }
 
     void enumerate_bus(uint8_t bus){
-        for(uint8_t device = 0; device < 32; device++) {
+        for(uint8_t device = 0; device < DEVICES_PER_BUS; device++) {
             check_device(bus, device);
         }
     }
 
     bool check_device(uint8_t bus, uint8_t device, uint8_t function) {
+        uint64_t offset = ((uint64_t)bus * DEVICES_PER_BUS + device) * FUNCTIONS_PER_DEVICE + function;
         uint32_t tmp = pci_read(bus, device, function, Device_Vendor_Offset);
         if( (tmp & 0xFFFF) != 0xFFFF){
-            // (*pci_devices)[bus][device]->VendorID = (uint16_t)(tmp & 0xFFFF);
-            // (*pci_devices)[bus][device]->DeviceID = (uint16_t)((tmp >> 16) & 0xFFFF);
-            // tmp = pciRead(bus, device, 0, Command_Status_Offset);
-            // (*pci_devices)[bus][device]->Command = (uint16_t)(tmp & 0xFFFF);
-            // (*pci_devices)[bus][device]->Status = (uint16_t)((tmp >> 16) & 0xFFFF);
-            // tmp = pciRead(bus, device, 0, Class_Sub_ProgIF_RevID_Offset);
-            // (*pci_devices)[bus][device]->RevisionID = (uint8_t)(tmp & 0xFF);
-            // (*pci_devices)[bus][device]->ProgIF = (uint8_t)((tmp >> 8) & 0xFF);
-            // (*pci_devices)[bus][device]->Subclass = (uint8_t)((tmp >> 16) & 0xFF);
-            // (*pci_devices)[bus][device]->Class = (uint8_t)((tmp >> 24) & 0xFF);
-            // tmp = pciRead(bus, device, 0, BIST_HeaderType_Latency_CacheLine_Offset);
-            // (*pci_devices)[bus][device]->CacheLineSize = (uint8_t)(tmp & 0xFF);
-            // (*pci_devices)[bus][device]->LatencyTimer = (uint8_t)((tmp >> 8) & 0xFF);
-            // (*pci_devices)[bus][device]->HeaderType = (uint8_t)((tmp >> 16) & 0xFF);
-            // (*pci_devices)[bus][device]->BIST = (uint8_t)((tmp >> 24) & 0xFF);
-            if(function == 0) {
-                GlobalConsole.print_str("Found: "); GlobalConsole.print_num(bus); GlobalConsole.print_str(":"); GlobalConsole.print_num(device);
-            } else {
-                GlobalConsole.print_str("   "); GlobalConsole.print_num(bus); GlobalConsole.print_str(":"); GlobalConsole.print_num(device);GlobalConsole.print_str(":"); GlobalConsole.print_num(function);
-            }
-            GlobalConsole.print_str(". VendID: "); GlobalConsole.print_hex((uint16_t)(tmp & 0xFFFF));
-            GlobalConsole.print_str(", DevID: "); GlobalConsole.print_hex((uint16_t)((tmp >> 16) & 0xFFFF));
-            tmp = pci_read(bus, device, function, Class_Sub_ProgIF_RevID_Offset);
-            GlobalConsole.print_str(", "); GlobalConsole.print_hex(tmp);
-            tmp = pci_read(bus, device, function, BIST_HeaderType_Latency_CacheLine_Offset);
-            GlobalConsole.print_str(", Header: "); GlobalConsole.print_hex((uint8_t)((tmp >> 16) & 0xFF));
-            GlobalConsole.print_line();
-            if((uint8_t)((tmp >> 16) & 0xFF) & 0x80 && function == 0){
+            PCIDeviceHeader* header = new PCIDeviceHeader;
+            header->VendorID = (uint16_t)(tmp & 0xFFFF);
+            header->DeviceID = (uint16_t)((tmp >> 16) & 0xFFFF);
+            tmp = pci_read(bus, device, 0, Command_Status_Offset);
+            header->Command = (uint16_t)(tmp & 0xFFFF);
+            header->Status = (uint16_t)((tmp >> 16) & 0xFFFF);
+            tmp = pci_read(bus, device, 0, Class_Sub_ProgIF_RevID_Offset);
+            header->RevisionID = (uint8_t)(tmp & 0xFF);
+            header->ProgIF = (uint8_t)((tmp >> 8) & 0xFF);
+            header->Subclass = (uint8_t)((tmp >> 16) & 0xFF);
+            header->Class = (uint8_t)((tmp >> 24) & 0xFF);
+            tmp = pci_read(bus, device, 0, BIST_HeaderType_Latency_CacheLine_Offset);
+            header->CacheLineSize = (uint8_t)(tmp & 0xFF);
+            header->LatencyTimer = (uint8_t)((tmp >> 8) & 0xFF);
+            header->HeaderType = (uint8_t)((tmp >> 16) & 0xFF);
+            header->BIST = (uint8_t)((tmp >> 24) & 0xFF);
+            pci_devices[offset] = *header;
+            if(header->HeaderType & 0x80 && function == 0){
                 for(uint8_t i = 1; i < 8; i++){
                     check_device(bus, device, i);
                 }
             }
             return true;
         }
+        pci_devices[offset].VendorID = 0xFFFF;
         return false;
     }
 
