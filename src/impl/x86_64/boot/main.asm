@@ -137,35 +137,35 @@ gdt64:
 .kernel_null_segment: equ $ - gdt64
 	dq 0
 .kernel_code_segment: equ $ - gdt64
-	dw 0
-	dw 0
-	db 0
-	db 0x9a
-	db 0xa0
-	db 0
+	dw 0 ; Limit 0-15
+	dw 0 ; Base 0-15
+	db 0 ; Base 16-23
+	db 0b10011010 ; Present, Ring 0,, Non-System Segment, Code Segment, Non-Conforming, Readable, Not Accessed
+	db 0b10100000 ; Granularity, 'd', long mode, Available?, Limit 16-19
+	db 0 ; Base 24-32
 .kernel_data_segment: equ $ - gdt64
-	dw 0
-	dw 0
-	db 0
-	db 0x92
-	db 0xa0
-	db 0
+	dw 0 ; Limit 0-15
+	dw 0 ; Base 0-15
+	db 0 ; Base 16-23
+	db 0b10010010 ; Present, Ring 0,, Non-System Segment, Data Segment, Non-Conforming, Readable, Accessed
+	db 0b10100000 ; Granularity, 'd', long mode, Available?, Limit 16-19
+	db 0 ; Base 24-32
 .user_null_segment: equ $ - gdt64
 	dq 0
 .user_code_segment: equ $ - gdt64
-	dw 0
-	dw 0
-	db 0
-	db 0x9a
-	db 0xa0
-	db 0
+	dw 0 ; Limit 0-15
+	dw 0 ; Base 0-15
+	db 0 ; Base 16-23
+	db 0b11111010 ; Present, Ring 3,, Non-System Segment, Code Segment, Non-Conforming, Readable, Not Accessed
+	db 0b10100000 ; Granularity, 'd', long mode, Available?, Limit 16-19
+	db 0 ; Base 24-32
 .user_data_segment: equ $ - gdt64
-	dw 0
-	dw 0
-	db 0
-	db 0x92
-	db 0xa0
-	db 0
+	dw 0 ; Limit 0-15
+	dw 0 ; Base 0-15
+	db 0 ; Base 16-23
+	db 0b11110010 ; Present, Ring 3,, Non-System Segment, Data Segment, Non-Conforming, Readable, Accessed
+	db 0b10100000 ; Granularity, 'd', long mode, Available?, Limit 16-19
+	db 0 ; Base 24-32
 .pointer:
 	dw $ - gdt64 - 1 ; length
 	dq gdt64 ; address
