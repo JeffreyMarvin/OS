@@ -4,14 +4,8 @@
 #include "heap.h"
 
 extern Text_Console GlobalConsole;
-PCI::PCIDeviceHeader* pci_devices;
-
 
 namespace PCI {
-
-    void create_device_array(){
-        pci_devices = (PCIDeviceHeader*)malloc((uint64_t)NUM_BUSES * DEVICES_PER_BUS * FUNCTIONS_PER_DEVICE * sizeof(PCIDeviceHeader));
-    }
 
     uint32_t pci_read(uint8_t bus, uint8_t device, uint8_t function, uint8_t offset) {
         uint32_t pci_address = 0x80000000;  //Bit 32 = Enable Bit, Bits 24-31 are reserved
@@ -23,42 +17,40 @@ namespace PCI {
         return inl(PCI_DATA_PORT);
     }
 
-    void enumerate_bus(uint8_t bus){
+    PCIBus* enumerate_bus(uint8_t bus_number){
+        PCIBus* bus = new PCIBus;
+        bus->bus_number = bus_number;
         for(uint8_t device = 0; device < DEVICES_PER_BUS; device++) {
-            check_device(bus, device);
+            bus->devices[device] = check_device(bus->bus_number, device);
         }
+        return bus;
     }
 
-    bool check_device(uint8_t bus, uint8_t device, uint8_t function) {
-        uint64_t offset = ((uint64_t)bus * DEVICES_PER_BUS + device) * FUNCTIONS_PER_DEVICE + function;
-        uint32_t tmp = pci_read(bus, device, function, Device_Vendor_Offset);
+    PCIDevice* check_device(uint8_t bus_number, uint8_t device_number, uint8_t function_number) {
+        uint32_t tmp = pci_read(bus_number, device_number, function_number, 0 * REG_OFFSET);
         if( (tmp & 0xFFFF) != 0xFFFF){
-            PCIDeviceHeader* header = new PCIDeviceHeader;
-            header->VendorID = (uint16_t)(tmp & 0xFFFF);
-            header->DeviceID = (uint16_t)((tmp >> 16) & 0xFFFF);
-            tmp = pci_read(bus, device, 0, Command_Status_Offset);
-            header->Command = (uint16_t)(tmp & 0xFFFF);
-            header->Status = (uint16_t)((tmp >> 16) & 0xFFFF);
-            tmp = pci_read(bus, device, 0, Class_Sub_ProgIF_RevID_Offset);
-            header->RevisionID = (uint8_t)(tmp & 0xFF);
-            header->ProgIF = (uint8_t)((tmp >> 8) & 0xFF);
-            header->Subclass = (uint8_t)((tmp >> 16) & 0xFF);
-            header->Class = (uint8_t)((tmp >> 24) & 0xFF);
-            tmp = pci_read(bus, device, 0, BIST_HeaderType_Latency_CacheLine_Offset);
-            header->CacheLineSize = (uint8_t)(tmp & 0xFF);
-            header->LatencyTimer = (uint8_t)((tmp >> 8) & 0xFF);
-            header->HeaderType = (uint8_t)((tmp >> 16) & 0xFF);
-            header->BIST = (uint8_t)((tmp >> 24) & 0xFF);
-            pci_devices[offset] = *header;
-            if(header->HeaderType & 0x80 && function == 0){
+            PCIDevice* device = new PCIDevice;
+            device->device_number = device_number;
+            device->bus_number = bus_number;
+            device->header = new PCIDeviceHeader;
+            device->header->reg[0] = tmp;
+            for(int i = 1; i < 0xF; i++) {
+                device->header->reg[i] = pci_read(bus_number, device_number, function_number, i * REG_OFFSET);
+            }
+            if(device->header->HeaderType & HEADER_TYPE_MULTI_FUNCTION_DEVICE && function_number == 0){
+                PCIDevice* tmp;
                 for(uint8_t i = 1; i < 8; i++){
-                    check_device(bus, device, i);
+                    tmp = check_device(bus_number, device_number, i);
+                    if(tmp) {
+                        device->functions[i] = tmp->header;
+                    } else {
+                        device->functions[i] = nullptr;
+                    }
                 }
             }
-            return true;
+            return device;
         }
-        pci_devices[offset].VendorID = 0xFFFF;
-        return false;
+        return nullptr;
     }
 
 }

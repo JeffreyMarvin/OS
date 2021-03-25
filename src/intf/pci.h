@@ -9,29 +9,117 @@ namespace PCI {
     const uint16_t PCI_CONFIG_PORT = 0xCF8;
     const uint16_t PCI_DATA_PORT = 0xCFC;
     
-    const uint8_t Device_Vendor_Offset = 0x00;
-    const uint8_t Command_Status_Offset = 0x04;
-    const uint8_t Class_Sub_ProgIF_RevID_Offset = 0x08;
-    const uint8_t BIST_HeaderType_Latency_CacheLine_Offset = 0x0c;
+    const uint8_t REG_OFFSET = 0x04;
 
     const uint16_t NUM_BUSES = 256;
     const uint8_t DEVICES_PER_BUS = 32;
     const uint8_t FUNCTIONS_PER_DEVICE = 8;
+    const uint8_t HEADER_TYPE_MULTI_FUNCTION_DEVICE = 0x80;
 
     struct PCIDeviceHeader{
-        uint16_t VendorID;
-        uint16_t DeviceID;
-        uint16_t Command;
-        uint16_t Status;
-        uint8_t RevisionID;
-        uint8_t ProgIF;
-        uint8_t Subclass;
-        uint8_t Class;
-        uint8_t CacheLineSize;
-        uint8_t LatencyTimer;
-        uint8_t HeaderType;
-        uint8_t BIST;
+        union {
+            struct {
+                uint16_t VendorID;
+                uint16_t DeviceID;
+                uint16_t Command;
+                uint16_t Status;
+                uint8_t RevisionID;
+                uint8_t ProgIF;
+                uint8_t Subclass;
+                uint8_t Class;
+                uint8_t CacheLineSize;
+                uint8_t LatencyTimer;
+                uint8_t HeaderType;
+                uint8_t BIST;
+                uint32_t BAR0;
+                uint32_t BAR1;
+                union {
+                    uint32_t BAR2;
+                    struct {
+                        uint8_t PrimaryBusNumber;
+                        uint8_t SecondaryBusNumber;
+                        uint8_t SubordinateBusNumber;
+                        uint8_t SecondaryLatencyTimer;
+                    };
+                };
+                union {
+                    uint32_t BAR3;
+                    struct {
+                        uint8_t IOBase;
+                        uint8_t IOLimit;
+                        uint16_t SecondaryStatus;
+                    };
+                };
+                union {
+                    uint32_t BAR4;
+                    struct {
+                        uint16_t MemBase;
+                        uint16_t MemLimit;
+                    };
+                };
+                union {
+                    uint32_t BAR5;
+                    struct {
+                        uint16_t PrefetchMemBase;
+                        uint16_t PrefetchMemLimit;
+                    };
+                };
+                union {
+                    uint32_t CardbusCISPtr;
+                    uint32_t PrefetchBaseUppper;
+                };
+                union {
+                    struct {
+                        uint16_t SubsystemVendorID;
+                        uint16_t SubsystemID;
+                    };
+                    uint32_t PrefetchLimitUpper;
+                };
+                union {
+                    uint32_t ExpansionROMBaseAddress;
+                    struct {
+                        uint16_t IOBaseUpper;
+                        uint16_t IOLimitUpper;
+                    };
+                };
+                union {
+                    struct {
+                        uint8_t CapabilitiesPtr;
+                        uint8_t Reserved[3];
+                    };
+                };
+                union {
+                    uint32_t Rsverved2;
+                    uint32_t ExpansionRomBaseAddress;
+                };
+                uint8_t InterruptLine;
+                uint8_t InterruptPin;
+                union {
+                    struct {
+                        uint8_t MinGrant;
+                        uint8_t MaxLatency;
+                    };
+                    uint16_t BridgeControl;
+                };
+            };
+            uint32_t reg[0xF];
+        };
     };
+
+    struct PCIDevice
+    {
+        uint8_t bus_number;
+        uint8_t device_number;
+        PCIDeviceHeader* header;
+        PCIDeviceHeader* functions[8];
+    };
+
+    struct PCIBus
+    {
+        uint8_t bus_number;
+        PCIDevice* devices[32];
+    };
+    
 
     enum struct PCI_VendorID : uint16_t {
         Intel_Corp = 0x8086,
@@ -90,11 +178,9 @@ namespace PCI {
         CANBus = 0x09,
         Other = 0x80
     };
-
-    void create_device_array();
     
     uint32_t pci_read(uint8_t bus, uint8_t devics, uint8_t function, uint8_t offset);
 
-    bool check_device(uint8_t bus, uint8_t device, uint8_t function = 0) ;
-    void enumerate_bus(uint8_t bus);
+    PCIDevice* check_device(uint8_t bus_number, uint8_t device_number, uint8_t function_number = 0) ;
+    PCIBus* enumerate_bus(uint8_t bus_number);
 }

@@ -8,7 +8,6 @@
 
 extern Page_Frame_Allocator GlobalAllocator;
 extern Text_Console GlobalConsole;
-extern PCI::PCIDeviceHeader* pci_devices;
 
 extern "C" void kernel_start(grub_args grub_arguments) {
 
@@ -33,8 +32,8 @@ void kernel_main(multiboot_info_t* mbd) {
     // print_mmap(mbd);
 
     GlobalConsole.print_line("Enumerating PCI Bus 0");
-    
-    PCI::enumerate_bus(0);
+
+    PCI::PCIBus* pci_bus0 = PCI::enumerate_bus(0);
 
     GlobalConsole.print_line();
     GlobalConsole.print_str("Total memory:    "); GlobalConsole.print_num(GlobalAllocator.get_total_RAM() / 1024); GlobalConsole.print_line(" kB");
@@ -51,14 +50,26 @@ void kernel_main(multiboot_info_t* mbd) {
     // GlobalConsole.print_str("RSDT Addr:"); GlobalConsole.print_hex(rsdp->RsdtAddress); GlobalConsole.print_line();
 
     for(uint8_t i = 0; i < 32; i++){
-        PCI::PCIDeviceHeader device = pci_devices[i * PCI::FUNCTIONS_PER_DEVICE];
-        if(device.VendorID != 0xFFFF && device.VendorID != 0x0000){
+        PCI::PCIDevice* device = pci_bus0->devices[i];
+        if(device){
             GlobalConsole.print_str("Found device "); GlobalConsole.print_num(i);
-            GlobalConsole.print_str(". VendorID: "); GlobalConsole.print_hex(device.VendorID);
-            GlobalConsole.print_str(", DeviceID: "); GlobalConsole.print_hex(device.DeviceID);
-            GlobalConsole.print_str(", Class: "); GlobalConsole.print_hex(device.Class);
-            GlobalConsole.print_str(", Subclass: "); GlobalConsole.print_hex(device.Subclass);
+            GlobalConsole.print_str(". VendorID: "); GlobalConsole.print_hex(device->header->VendorID);
+            GlobalConsole.print_str(", DeviceID: "); GlobalConsole.print_hex(device->header->DeviceID);
+            GlobalConsole.print_str(", Class: "); GlobalConsole.print_hex(device->header->Class);
+            GlobalConsole.print_str(", Header: "); GlobalConsole.print_hex(device->header->HeaderType);
             GlobalConsole.print_line();
+            if(device->header->HeaderType & PCI::HEADER_TYPE_MULTI_FUNCTION_DEVICE) {
+                for(uint8_t f = 1; f < PCI::FUNCTIONS_PER_DEVICE; f++) {
+                    if(device->functions[f]){
+                        GlobalConsole.print_str("    Function "); GlobalConsole.print_num(f);
+                        GlobalConsole.print_str(". VendorID: "); GlobalConsole.print_hex(device->functions[f]->VendorID);
+                        GlobalConsole.print_str(", DeviceID: "); GlobalConsole.print_hex(device->functions[f]->DeviceID);
+                        GlobalConsole.print_str(", Class: "); GlobalConsole.print_hex(device->functions[f]->Class);
+                        GlobalConsole.print_str(", Header: "); GlobalConsole.print_hex(device->functions[f]->HeaderType);
+                        GlobalConsole.print_line();
+                    }
+                }
+            }
         }
     }
 
