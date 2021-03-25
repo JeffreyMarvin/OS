@@ -49,7 +49,7 @@ void kernel_main(multiboot_info_t* mbd) {
     // GlobalConsole.print_str("Rev:"); GlobalConsole.print_hex(rsdp->Revision); GlobalConsole.print_line();
     // GlobalConsole.print_str("RSDT Addr:"); GlobalConsole.print_hex(rsdp->RsdtAddress); GlobalConsole.print_line();
 
-    for(uint8_t i = 0; i < 32; i++){
+    for(uint8_t i = 0; i < PCI::DEVICES_PER_BUS; i++){
         PCI::PCIDevice* device = pci_bus0->devices[i];
         if(device){
             GlobalConsole.print_str("Found device "); GlobalConsole.print_num(i);

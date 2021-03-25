@@ -66,6 +66,7 @@ __attribute__((interrupt)) void invalid_op_handler(interrupt_frame* frame){
 }
 
 __attribute__((interrupt)) void keyboard_int_handler(interrupt_frame* frame){
+    unsigned char scan_code = inb(0x60);
     //TODO: Handle Keyboard Input
     pic_end_master();
 }
