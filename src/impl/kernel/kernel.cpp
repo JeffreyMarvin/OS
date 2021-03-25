@@ -5,6 +5,7 @@
 #include "rsdp.h"
 #include "pit.h"
 #include "pci.h"
+#include "ahci.h"
 
 extern Page_Frame_Allocator GlobalAllocator;
 extern Text_Console GlobalConsole;
@@ -74,6 +75,32 @@ void kernel_main(multiboot_info_t* mbd) {
     }
 
     GlobalConsole.print_line();
+    GlobalConsole.print_line();
+
+    // AHCI::AHCI_Driver ahci_driver = nullptr;
+    PCI::PCIDeviceHeader* ahci_device;
+
+    for(uint8_t i = 0; i < PCI::DEVICES_PER_BUS; i++){
+        PCI::PCIDevice* device = pci_bus0->devices[i];
+        if(device){
+            if(device->header->Class == (uint8_t)PCI::PCI_Class::Mass_Storage_Controller && device->header->Subclass == (uint8_t)PCI::Mass_Storage_Controller_Subclass::SATA_Controller) {
+                ahci_device = device->header;
+                goto AHCI_DEVICE_FOUND;
+            }
+            if(device->header->HeaderType & PCI::HEADER_TYPE_MULTI_FUNCTION_DEVICE) {
+                for(uint8_t f = 1; f < PCI::FUNCTIONS_PER_DEVICE; f++) {
+                    if(device->functions[f]){
+                        if(device->functions[f]->Class == (uint8_t)PCI::PCI_Class::Mass_Storage_Controller && device->functions[f]->Subclass == (uint8_t)PCI::Mass_Storage_Controller_Subclass::SATA_Controller) {
+                            ahci_device = device->functions[f];
+                            goto AHCI_DEVICE_FOUND;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    AHCI_DEVICE_FOUND: 
+        AHCI::AHCI_Driver ahci_driver = AHCI::AHCI_Driver(ahci_device);
 
     while(true) {
         draw_time(80,25);
