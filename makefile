@@ -2,7 +2,7 @@ CC = x86_64-elf-gcc
 ASM = nasm
 LD = x86_64-elf-ld
 
-CFLAGS = -ffreestanding -fshort-wchar -mno-red-zone -mfpmath=387-mno-mmx -mno-sse -mno-sse2 -fno-exceptions
+CFLAGS = -ffreestanding -fshort-wchar -mno-red-zone -mfpmath=387 -mno-mmx -mno-sse -mno-sse2 -fno-exceptions
 INT_CFLAGS = -mgeneral-regs-only
 ASMFLAGS = -f elf64
 LDFLAGS = -n -static -Bsymbolic -nostdlib
